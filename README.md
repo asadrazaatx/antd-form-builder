@@ -1,78 +1,5 @@
-# antd-form-builder
-The FormBuilder is a small helper (< 500 lines of source code) for building forms with [React](https://reactjs.org) and [ant.design](https://ant.design) easily while not preventing you from using the original antd form API. It can not only be used as editable form but also to display readonly information with form layout. It supports both antd v3 and v4 versions.
 
-[![NPM](https://img.shields.io/npm/v/antd-form-builder.svg)](https://www.npmjs.com/package/antd-form-builder) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-
-[<img src="https://opencollective.com/rekit/tiers/backers.svg?avatarHeight=60"/>](https://opencollective.com/rekit)
-
-## Examples
-You can see the live demo at:
-https://rekit.github.io/antd-form-builder
-
-## Philosophy
-The key principle in my mind to create antd-form-builder is it should just help to define form fields and the layout while it doesn't reduce the flexibility of antd's original form API. So in simple patterns you can create a form very easily but if a form is much complicated you can still use the original form API. You can even use antd-form-builder together with the raw API in a mixed way.
-
-## Meta Driven
-Besides the simplified API which helps to create form easily, the FormBuilder is also very useful if you have meta driven requirement. For example if your form structure needs to be configurable, the meta could be a pure JSON object which can be easily saved and managed separately.
-
-## About the New Form API of Ant.Design v4
-The new v4 version of ant.design has been released. The form component has been re-written so some API is not backward-compatible now. One of main reasons why antd re-wrote form is for performance improvment of large and complicated forms. But it also lost some flexibilty of creating dynamic forms. In v3, when any form field is changed, the component will be re-rendered because it's hign-order-component based. But in v4 whenever a field is changed the component in which antd form is used will never re-render. That means it's now impossible to create dynamic forms with such code:
-
-```jsx
-<Form>
-  {form.getFieldValue('f1') === 'foo' && <Form.Item {...}/>}
-</Form>
-```
-
-Instead, you will need similar code like below:
-```jsx
-<Form form={form}>
-  <Form.Item label="Field1" name="f1">
-    <Input />
-  </Form.Item>
-  <Form.Item shouldUpdate>
-    {() =>
-      form.getFieldValue("f1") === "foo" && (
-        <Form.Item label="Field2" name="f2">
-          <Input />
-        </Form.Item>
-      )
-    }
-  </Form.Item>
-</Form>
-```
-
-Then when you type in 'foo' in the field1 the second field2 will appear.
-
-IMO, this API design looks hacky because the nested form item here is meaningless but the outer one is just a wrapper. The new `shouldUpdate` property means when other fileds are changed the `Form.Item` will re-render.
-
-The new API is much less flexible for dynamic forms because you have to put all dynamic logic in the render props. That also means you have to break components into small parts that update separately in render props.
-
-So for the new form API of antd v4, the antd-form-builder can still save much time for building dynamic forms.
-
-## New API for antd v4
-Though the API of antd-form-builder is backward-compatible, the new form builder still increases the major version to 2.0 since there're some new API for antd v4. If you still use antd v3 you don't need to change any code after upgrading to form builder 2.0. If you use v4, below is the key difference.
-
-### 1. For class components
-You need to create a form instance by `FormBuilder.createForm()` and pass it to the antd's `Form`:
-```jsx
-import FormBuilder from 'antd-form-builder';
-
-export default class App extends Component {
-  formRef = React.createRef()
-  render() {
-    const meta = [{ key: 'name', label: 'Name' }]
-    return (
-      <Form ref={formRef} onValuesChange={() => this.forceUpdate()}>
-        <FormBuilder meta={meta} form={this.formRef} />
-      </Form>
-    )
-  }
-}
-```
-
-### 2. For functional components
+### For functional components
 You need to create a form with the hook `Form.useForm()` and pass it to the antd's `Form`:
 ```jsx
 import { Form } from 'antd';
@@ -93,11 +20,6 @@ export default () => {
 ### 3. Pass `forceUpdate` to antd's `Form`'s `onValuesChange`
 This is because in the v4 Form, when fields are changed, the component is not re-renderred. This "urgly" mechanism ensure the wrapper component is always re-renderred when fields change. The reason why it took a bit long time for the FormBuilder 2.0 is just I also think this API looks a bit stange but unitl now I've not found a better way. However you don't need to worry about using this API because it will not bring incompatabilty issue. However, if you don't need dynamic field capability, you don't need to do this. If you want to control the dynamic logic more flexible, you can use `shouldUpdate` with `Form.Item` yourself.
 
-## Install
-
-```bash
-npm install --save-dev antd-form-builder
-```
 
 ## Usage
 The most simple usage is like below (for antd v4):
@@ -129,13 +51,6 @@ export default () => {
 Then you get a form:
 
 <img style="border: 1px solid #eee" src="images/login.png?raw=true" width="500">
-
-To see more examples, please go to https://rekit.github.io/antd-form-builder
-
-> NOTE: if you use antd v3.x, you may see a warning about module not found: `rc-field-form/lib/useForm`. It's not a problem because it needs to dynamically detect if the current Form is v3 or v4. If you know a better way without warning, feel free to create a PR.
-
-## API Reference
-The FormBuilder could be used for both antd v3 and v4, but the API set has a little difference. They will be marked as <img src="images/v3only.png?raw=true" width="55"> and <img src="images/v4only.png?raw=true" width="55">.
 
 ### General API for antd v4
 | Name  | Description |
@@ -350,36 +265,3 @@ const meta = {
 ```
 
 So if you define you own widget, you can give a metaConvertor to provide a convenient way to define field widget.
-
-## Contribute
-### Local development
-This project is bootstraped by [create-react-library](https://github.com/transitive-bullshit/create-react-library). To start development locally, follow below steps:
-
-```sh
-# 1. Clone repo
-git clone https://github.com/rekit/antd-form-builder.git
-
-# 2. Install dependencies
-cd antd-form-builder
-npm install
-
-# 3. Run rollup in watch mode
-npm start
-
-# 4. Start example dev server (in anther tab)
-cd example
-npm start
-```
-
-Now, anytime you make a change to your library in src/ or to the example app's example/src, create-react-app will live-reload your local dev server so you can iterate on your component in real-time.
-
-### Build examples
-```sh
-cd examples
-npm run build
-```
-This will build examples into root `docs` folder which is used as gh-pages root. So after build, commit or pr the changes to the repo.
-
-## License
-
-MIT © [supnate](https://github.com/supnate)
